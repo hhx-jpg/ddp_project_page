@@ -1,0 +1,319 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Less Detail, Better Answers: Degradation-Driven Prompting for VQA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8fafc;
+            overflow-x: hidden;
+        }
+        
+        /* CSS Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
+            opacity: 0;
+        }
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 3rem;
+            margin-top: 3rem;
+            margin-bottom: 3rem;
+            border-radius: 1rem;
+        }
+        
+        h2 {
+            color: #1e293b;
+            font-family: 'Merriweather', Georgia, serif;
+            font-weight: 800;
+            font-size: clamp(2rem, 4vw, 2.6rem);
+            line-height: 1.2;
+            letter-spacing: 0.01em;
+            border-bottom: 3px solid #515153;
+            padding-bottom: 0.5rem;
+            margin-top: 2.5rem;
+            margin-bottom: 1.5rem;
+            display: inline-block;
+        }
+        
+        p {
+            color: #334155;
+            line-height: 1.8;
+            margin-bottom: 1.2rem;
+            text-align: justify;
+            font-size: 1.05rem;
+        }
+        
+        .highlight {
+            background-color: #f8fafc;
+            padding: 1.5rem;
+            border-left: 5px solid #3d3e3f;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        .highlight:hover {
+            transform: translateX(5px);
+            background-color: #f1f5f9;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 1rem;
+            text-align: center;
+        }
+        th {
+            background-color: #0f172a;
+            font-weight: 600;
+            color: #f8fafc;
+        }
+        tr:nth-child(even) { background-color: #f8fafc; }
+        tr:hover { background-color: #f1f5f9; transition: background-color 0.2s; }
+        
+        .link-btn {
+            background-color: #0f172a;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+        .link-btn:hover {
+            background-color: #5b5d5f;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .figure-image {
+            width: 100%;
+            height: auto;
+            display: block;
+            border: none;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin: 1.5rem 0;
+            transition: transform 0.3s ease;
+            background: #ffffff;
+        }
+        .figure-image:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .citation-block {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin-top: 1rem;
+            overflow-x: auto;
+            box-shadow: 0 8px 16px -8px rgba(15, 23, 42, 0.6);
+        }
+
+        .citation-block code {
+            font-family: Consolas, 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            white-space: pre;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container fade-in">
+    <header class="text-center mb-10">
+        <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-blue-600 mb-5 leading-tight">
+            Less Detail, Better Answers:<br>Degradation-Driven Prompting for VQA
+        </h1>
+        <div class="text-xl text-blue-600 font-semibold mb-3">
+            Haoxuan Han, Weijie Wang*, Zeyu Zhang, Yefei He, Bohan Zhuang*
+        </div>
+        <div class="text-slate-500 mb-6 text-lg">
+            State Key Lab of CAD&CG, Zhejiang University<br>
+            <strong>DataCV Challenge, CVPRW 2026</strong>
+        </div>
+        <div class="flex justify-center space-x-6 mt-6">
+            <a href="_CVPRW_2026__DataCV cr.pdf" class="link-btn">
+                📄 Paper
+            </a>
+            <a href="https://github.com/ziplab/DDP" class="link-btn">
+                💻 Code
+            </a>
+        </div>
+    </header>
+
+    <section class="fade-in delay-100">
+        <h2>Abstract</h2>
+        <p>
+            Recent advancements in Vision-Language Models (VLMs) have significantly pushed the boundaries of Visual Question Answering (VQA). However, high-resolution details can sometimes become noise that leads to hallucinations or reasoning errors. 
+        </p>
+        <p>
+            In this paper, we propose <strong>Degradation-Driven Prompting (DDP)</strong>, a novel framework that improves VQA performance by strategically reducing image fidelity to force models to focus on essential structural information. We evaluate DDP across two distinct tasks: Physical attributes and Perceptual phenomena. Our experimental results demonstrate that "less is more" by intentionally degrading visual inputs and providing targeted structural prompts. DDP enables VLMs to bypass distracting textures and achieve superior reasoning accuracy on challenging visual benchmarks.
+        </p>
+    </section>
+
+    <section class="fade-in delay-200">
+        <h2>Methodology: The DDP Framework</h2>
+        
+        <div class="text-center mb-6">
+            <img src="https://raw.githubusercontent.com/hhx-jpg/picbed/main/20260404174610387.png" class="figure-image" loading="lazy" alt="DDP-based VLM enhancement framework" />
+            <span class="text-sm text-slate-500 font-medium">Figure 3 - DDP-based VLM enhancement framework (Classifier, Tool Manager, and Critic as three major stages)</span>
+        </div>
+
+        <p class="mb-6 font-medium">Our multi-stage reasoning pipeline is designed to reduce visual illusions in VLMs and includes the following three core stages:</p>
+        
+        <div class="highlight">
+            <h3 class="font-bold text-xl text-slate-800 mb-3 flex items-center gap-2"><span class="w-8 h-8 rounded-full bg-slate-200 text-slate-800 flex items-center justify-center text-sm">1</span> Task Classification</h3>
+            <p class="mb-0">
+                A lightweight Gaussian smoothing is first applied to the input image to generate a coarse perceptual prior. The classifier then performs a two-level analysis and routes the task to either "Physical Attributes" (e.g., size, color) or "Perceptual Phenomena" (e.g., counting, spot-the-difference, motion illusion).
+            </p>
+        </div>
+
+        <div class="highlight">
+            <h3 class="font-bold text-xl text-slate-800 mb-3 flex items-center gap-2"><span class="w-8 h-8 rounded-full bg-slate-200 text-slate-800 flex items-center justify-center text-sm">2</span> Tool Manager</h3>
+            <p class="mb-0">
+                First-level DDP downsampling is applied (compressed to about 150 pixels) to filter high-frequency noise. As an autonomous agent, the tool manager invokes predefined visual tools (e.g., crop, red box, polar/cartesian guide lines, blur masks) to decouple deceptive visual cues.
+            </p>
+        </div>
+
+        <div class="highlight">
+            <h3 class="font-bold text-xl text-slate-800 mb-3 flex items-center gap-2"><span class="w-8 h-8 rounded-full bg-slate-200 text-slate-800 flex items-center justify-center text-sm">3</span> Target Prompting and Final Reasoning</h3>
+            <p class="mb-0">
+                The most aggressive DDP setting is applied by downsampling the image to below 80 pixels, forming a "structural bottleneck". This forces the critic model to discard misleading local textures and rely on global topology plus alignment prompts to produce structured chain-of-thought reasoning.
+            </p>
+        </div>
+    </section>
+
+    <section class="fade-in delay-300">
+        <h2>Experimental Results</h2>
+
+        <h3 class="font-bold text-lg text-slate-800 mt-8 mb-3 flex items-center gap-2">
+            <svg class="w-6 h-6 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+            1. DataCV CVPR Challenge (Track 1)
+        </h3>
+        <p>We are the 1st solution in this track. DDP demonstrates a substantial performance leap over standard models.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Method</th>
+                    <th>Original Images</th>
+                    <th>Perturbed Images</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Gemini-3-Pro</td>
+                    <td>89.52%</td>
+                    <td>66.19%</td>
+                </tr>
+                <tr class="font-bold text-blue-700">
+                    <td>DDP (w/ Gemini-3-Pro)</td>
+                    <td>95.71% <span class="text-green-600 text-sm ml-1">(+6.19%)</span></td>
+                    <td>86.19% <span class="text-green-600 text-sm ml-1">(+20.00%)</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3 class="font-bold text-lg text-slate-800 mt-10 mb-3 flex items-center gap-2">
+            <svg class="w-6 h-6 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+            2. V*Bench (High-Resolution Visual Grounding)
+        </h3>
+        <p>Our model achieves a significant performance leap over standard multimodal large language models.</p>
+        
+        <div class="text-center mb-6 mt-4">
+            <img src="https://raw.githubusercontent.com/hhx-jpg/picbed/main/20260404174414429.png" class="figure-image" loading="lazy" alt="Case studies on V*Bench demonstrating improved grounding accuracy" />
+            <span class="text-sm text-slate-500 font-medium">Figure 4: Case studies on V*Bench demonstrating improved grounding accuracy</span>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Model</th>
+                    <th>Attribute (%)</th>
+                    <th>Spatial (%)</th>
+                    <th>Overall (%)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>GPT-4V</td>
+                    <td>51.3</td>
+                    <td>60.5</td>
+                    <td>55.0</td>
+                </tr>
+                <tr>
+                    <td>LLaVA-1.5-7B</td>
+                    <td>43.5</td>
+                    <td>56.6</td>
+                    <td>48.7</td>
+                </tr>
+                <tr class="font-bold text-blue-700">
+                    <td>Ours (DDP)</td>
+                    <td>89.2</td>
+                    <td>89.5</td>
+                    <td>89.3</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3 class="font-bold text-lg text-slate-800 mt-10 mb-3 flex items-center gap-2">
+            <svg class="w-6 h-6 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+            3. TeT ColorBlind Dataset
+        </h3>
+        <p>On the extreme challenge of distinguishing subtle color variations, existing SOTA models (OpenAI o1, Claude-3-Sonnet, Gemini-2.5-Pro) fail to achieve a non-zero score.</p>
+        <div class="bg-slate-900 text-white p-8 rounded-xl text-center shadow-lg transition-transform hover:scale-105 duration-300 mt-4 border border-slate-700">
+            <div class="text-lg mb-2"><strong>DDP (w/ Gemini-3-Pro)</strong> achieves a Pass@1 accuracy of</div>
+            <div class="text-5xl text-blue-400 font-extrabold">29.33%</div>
+        </div>
+        
+    </section>
+
+    <section class="fade-in delay-300">
+        <h2>Citation</h2>
+        <p>If you find this project useful, please cite it as:</p>
+        <pre class="citation-block"><code>@article{han2026ddp,
+  title={Less Detail, Better Answers: Degradation-Driven Prompting for VQA},
+  author={Han, Haoxuan and Wang, Weijie and Zhang, Zeyu and He, Yefei and Zhuang, Bohan},
+  journal={CVPRW DataCV Challenge},
+  year={2026}
+}</code></pre>
+    </section>
+
+</div>
+
+</body>
+</html>
+
